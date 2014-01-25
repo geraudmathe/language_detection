@@ -1,8 +1,10 @@
+require 'bigdecimal'
 module LanguageDetection  
   class Rank
 
     @@damping = 0.85
     @@convergence = 0.01
+
     def self.punct?(c);   c =~ /^[[:punct:]]$/ ? true : false end
 
     def self.subs(a, b)
@@ -70,18 +72,34 @@ module LanguageDetection
 
       begin
         graph[:graph].each do |id, inlinks|
-            pr = 0
-            inlinks.each do |zid|
-              pr += graph[:values][zid] / graph[:outlinks][zid]
-            end
-            pr = (1-damping) * damping * pr
-            newvals[id] = pr
+          pr = 0
+          inlinks.each do |zid|
+            pr += BigDecimal.new((graph[:values][zid] / graph[:outlinks][zid]), 10)
+          end
+          pr = BigDecimal.new(1.0-damping, 10) * damping * pr
+          newvals[id] = pr.to_f
         end
-        puts self.hasConverge(graph[:values], newvals)
         break if self.hasConverge(graph[:values], newvals)
         graph[:values] = newvals
       end while true
-      return newvals
+      #newvals.sort_by {|k,v| v}
+    end
+
+    def self.distance sample, ngrams, total
+
+      score   = 0.0
+      penalty = sample.length+1
+      pos     = 0.0
+      ngrams.slice(0, sample.length).each do |ngram, dummy|
+        if sample[ngram].nil?
+          score += penalty
+          pos += 1.0
+          next
+        end
+        score += (pos - sample[ngram]["pos"]).abs
+        pos += 1
+      end
+      1 - score / (((penalty-1) * total))
     end
   end
 end
