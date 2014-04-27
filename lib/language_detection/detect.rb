@@ -5,15 +5,17 @@ module LanguageDetection
     def self.included(base)
 
       base.class_eval do
+
         @@maxNGram = 300
         @@threshold = 0.02
-        def self.parseChunk text
-          ngrams = @@parser.get text
-          rank = LanguageDetection::Rank.sort ngrams
 
+        def self.parseChunk text
+          ngrams =  LanguageDetection::Rank.sort @@parser.get(text)
           total  = [@@maxNGram, ngrams.size].min()
           distance = []
+          
           @@data.each do |k, v|
+            puts k
             distance << {lang: k, score: LanguageDetection::Rank.distance(v, ngrams, total)}
           end
 

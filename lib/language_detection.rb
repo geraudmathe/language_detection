@@ -6,6 +6,5 @@ require "language_detection/parser"
 require "language_detection/rank"
 
 module LanguageDetection
-
   include LanguageDetection::Detect
 end

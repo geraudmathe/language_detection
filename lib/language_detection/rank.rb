@@ -2,8 +2,8 @@ require 'bigdecimal'
 module LanguageDetection  
   class Rank
 
-    @@damping = 0.85
-    @@convergence = 0.01
+    @@damping = BigDecimal.new 0.85, 10
+    @@convergence = BigDecimal.new 0.01, 10
 
     def self.punct?(c);   c =~ /^[[:punct:]]$/ ? true : false end
 
@@ -54,6 +54,7 @@ module LanguageDetection
             outlinks[ngrams[j]] +=1
             values[ngrams[j]] = 0.15
           end
+          pp values.length
           graph[ ngrams[e] ] << ngrams[i]
           graph[ ngrams[i] ] << ngrams[e]
           e += 1 
@@ -74,7 +75,7 @@ module LanguageDetection
         graph[:graph].each do |id, inlinks|
           pr = 0
           inlinks.each do |zid|
-            pr += BigDecimal.new((graph[:values][zid] / graph[:outlinks][zid]), 10)
+            pr += BigDecimal.new(graph[:values][zid], 10) / BigDecimal.new(graph[:outlinks][zid], 10)
           end
           pr = BigDecimal.new(1.0-damping, 10) * damping * pr
           newvals[id] = pr.to_f
@@ -82,7 +83,7 @@ module LanguageDetection
         break if self.hasConverge(graph[:values], newvals)
         graph[:values] = newvals
       end while true
-      #newvals.sort_by {|k,v| v}
+      newvals.sort_by {|k,v| v}
     end
 
     def self.distance sample, ngrams, total
@@ -90,7 +91,10 @@ module LanguageDetection
       score   = 0.0
       penalty = sample.length+1
       pos     = 0.0
-      ngrams.slice(0, sample.length).each do |ngram, dummy|
+      sliced  = ngrams.slice(0, sample.length)
+      pp "ce -> #{sliced[0]}"
+      sliced.each do |ngram, dummy|
+        #pp "#{ngram}, #{dummy}"
         if sample[ngram].nil?
           score += penalty
           pos += 1.0
@@ -99,6 +103,7 @@ module LanguageDetection
         score += (pos - sample[ngram]["pos"]).abs
         pos += 1
       end
+      puts "1 - #{score} / (((#{penalty}-1) * #{total}))"
       1 - score / (((penalty-1) * total))
     end
   end
