@@ -54,7 +54,7 @@ module LanguageDetection
             outlinks[ngrams[j]] +=1
             values[ngrams[j]] = 0.15
           end
-          pp values.length
+          #p values.length
           graph[ ngrams[e] ] << ngrams[i]
           graph[ ngrams[i] ] << ngrams[e]
           e += 1 
@@ -92,7 +92,7 @@ module LanguageDetection
       penalty = sample.length+1
       pos     = 0.0
       sliced  = ngrams.slice(0, sample.length)
-      pp "ce -> #{sliced[0]}"
+      #p "ce -> #{sliced[0]}"
       sliced.each do |ngram, dummy|
         #pp "#{ngram}, #{dummy}"
         if sample[ngram].nil?
@@ -103,7 +103,7 @@ module LanguageDetection
         score += (pos - sample[ngram]["pos"]).abs
         pos += 1
       end
-      puts "1 - #{score} / (((#{penalty}-1) * #{total}))"
+      #puts "1 - #{score} / (((#{penalty}-1) * #{total}))"
       1 - score / (((penalty-1) * total))
     end
   end
